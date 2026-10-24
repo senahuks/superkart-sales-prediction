@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import requests
@@ -40,12 +39,10 @@ product_data = {
 
 # Single Prediction
 if st.button("Predict", type='primary'):
-
     response = requests.post(
         f"{BACKEND_URL}/v1/predict",
         json=product_data
     )
-
     if response.status_code == 200:
         result = response.json()
         predicted_sales = result["Sales"]
@@ -55,43 +52,29 @@ if st.button("Predict", type='primary'):
 
 # Batch Prediction
 st.subheader("Batch Prediction")
-
-uploaded_file = st.file_uploader(
-    "Upload a CSV file",
-    type=["csv"]
-)
-
+uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
 if uploaded_file is not None:
-
     if st.button("Predict for Batch", type='primary'):
-
         response = requests.post(
             f"{BACKEND_URL}/v1/predictbatch",
             files={"file": uploaded_file}
         )
-
         if response.status_code == 200:
             results = response.json()
-
             st.success("Predictions completed successfully!")
-
             try:
                 if isinstance(results, list):
                     df = pd.DataFrame(results)
                 elif isinstance(results, dict):
-                    # Check if all values are scalars
                     if all(not isinstance(v, (list, dict)) for v in results.values()):
                         df = pd.DataFrame([results])
                     else:
                         df = pd.DataFrame(results)
                 else:
                     df = pd.DataFrame({"Result": [results]})
-
                 st.dataframe(df, use_container_width=True)
-
             except Exception as e:
                 st.error(f"Unable to display results as a table: {e}")
                 st.json(results)
-
         else:
             st.error("Unable to connect to the prediction API.")
